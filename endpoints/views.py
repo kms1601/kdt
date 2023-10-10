@@ -12,28 +12,45 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
     queryset = CrosswalkModel.objects.all()
     serializer_class = CrosswalkModelSerializer
     
+    
     @action(detail=False, methods=['post'], url_path='find')
     def find_closest_crosswalk(self, request):
+        '''
+        쿼리로 받은 좌표값에 대해 가장 가까운 횡단보도를 반환한다.
+        latitude: 위도(float)
+        longitude: 경도(float)
+        '''
+        # 쿼리가 올바른지 확인
         try:
             latitude = float(request.GET['latitude'])
             longitude = float(request.GET['longitude'])
         except:
-            return Response({'message': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Bad request'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         
+        # 쿼리로 받은 좌푯값 Point 타입으로 위치 설정
         point = Point(longitude, latitude, srid=4326)
         
-        closest_crosswalk = CrosswalkModel.objects.annotate(
-            distance=Distance('geom', point)
-        ).order_by('distance').first()
+        # 가장 가까운 횡단보도 찾는 알고리즘 수행
+        closest_crosswalk = (
+            CrosswalkModel.objects.annotate(distance=Distance("geom", point))
+            .order_by("distance")
+            .first()
+        )
         
+        # 수행에 성공했으면 반환, 못했으면 404오류 반환
         if closest_crosswalk:
             serializer = CrosswalkModelSerializer(closest_crosswalk)
             distance = closest_crosswalk.distance.m
-            return Response({'crosswalk': serializer.data, 'distance': distance})
+            return Response(
+                {'crosswalk': serializer.data,'distance': distance},
+            )
         else:
-            return Response({'message': 'No matching crosswalk found.'}, status=status.HTTP_404_NOT_FOUND)
-
-
+            return Response(
+                {'message': 'No matching crosswalk found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 class TrafficModelViewSet(viewsets.ModelViewSet):
     queryset = TrafficModel.objects.all()
     serializer_class = TrafficModelSerializer

@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class CrossyroadConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'crossyroad'
+    name = 'endpoints'
