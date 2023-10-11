@@ -3,10 +3,11 @@ from django.contrib.gis.db import models
 
 class CrosswalkModel(models.Model):
     geom = models.GeometryField()
+    traffic = models.BooleanField()
     
     class Meta:
         db_table = 'crosswalk'
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class TrafficModel(models.Model):
@@ -14,7 +15,7 @@ class TrafficModel(models.Model):
     
     class Meta:
         db_table = 'traffic'
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class CCTVModel(models.Model):
@@ -22,4 +23,4 @@ class CCTVModel(models.Model):
     
     class Meta:
         db_table = 'cctv'
-        ordering = ['-id']
+        ordering = ['id']
