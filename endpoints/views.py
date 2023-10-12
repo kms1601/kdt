@@ -26,11 +26,11 @@ def find_crosswalk_by_distance(point : Point, cnt : int, traffic : bool):
             crosswalk.annotate(distance=Distance("geom", point))
             .order_by("distance")
         )
-    crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'distance')[:cnt]
+    crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'cctv', 'distance_to_cctv', 'distance')[:cnt]
     return crosswalk_with_distance
 
 
-def find_crosswalk_by_radius(point : Point, radius : int, traffic : bool):
+def find_crosswalk_by_radius(point : Point, radius : float, traffic : bool):
     '''
     일정 거리 안 모든 횡단보도를 찾는 알고리즘(postgis 내부 알고리즘 이용)
     '''
@@ -49,7 +49,7 @@ def find_crosswalk_by_radius(point : Point, radius : int, traffic : bool):
         crosswalk.annotate(distance=Distance("geom", point))
         .order_by("distance")
     )
-    crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'distance')
+    crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'cctv', 'distance_to_cctv', 'distance')
     return crosswalk_with_distance
     
     
@@ -63,13 +63,13 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Method \"POST\" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
     @action(detail=False, methods=['post'], url_path='find/distance')
-    def find_closest_crosswalk(self, request):
+    def find_by_distance(self, request):
         '''
-        body로 받은 좌표값에 대해 가장 가까운 횡단보도를 반환한다.
+        body로 받은 좌표값에 대해 거리순으로 횡단보도를 반환한다.
         latitude: 위도(float)
         longitude: 경도(float)
-        cnt: 몇개 반환(int)
-        traffic: 신호등 있는 횡단보도도 조회(bool)
+        cnt: 반환할 개수(int)
+        traffic: false - 신호등 없는 횡단보도만 조회 true - 신호등 있는 횡단보도도 조회(bool)
         '''
         
         # body가 올바른지 확인
@@ -100,6 +100,8 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
                     'id': data['id'],
                     'geom': str(data['geom']),
                     'traffic': bool(data['traffic']),
+                    'cctv': data['cctv'],
+                    'distance_to_cctv': data['distance_to_cctv'],
                     'distance': data['distance'].m
                 }
             return Response(response)
@@ -110,12 +112,12 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
             )
     
     @action(detail=False, methods=['post'], url_path='find/radius')
-    def find_closest_crosswalk2(self, request):
+    def find_within_radius(self, request):
         '''
-        body로 받은 좌표값에 대해 가장 가까운 횡단보도를 반환한다.
+        body로 받은 좌표값에 대해 거리내 횡단보도를 반환한다.
         latitude: 위도(float)
         longitude: 경도(float)
-        radius: 탐색 범위(int)
+        radius: 탐색 범위(float)
         traffic: 신호등 있는 횡단보도도 조회(bool)
         '''
         # body가 올바른지 확인
@@ -124,7 +126,7 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
             latitude, longitude, radius, traffic = (
                 float(json_data['latitude']),
                 float(json_data['longitude']),
-                int(json_data['radius']),
+                float(json_data['radius']),
                 bool(json_data['traffic']),
             )
         except Exception as e:
@@ -146,6 +148,8 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
                     'id': data['id'],
                     'geom': str(data['geom']),
                     'traffic': bool(data['traffic']),
+                    'cctv': data['cctv'],
+                    'distance_to_cctv': data['distance_to_cctv'],
                     'distance': data['distance'].m
                 }
             return Response(response)

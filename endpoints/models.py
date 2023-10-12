@@ -4,6 +4,8 @@ from django.contrib.gis.db import models
 class CrosswalkModel(models.Model):
     geom = models.GeometryField()
     traffic = models.BooleanField()
+    cctv = models.IntegerField()
+    distance_to_cctv = models.FloatField()
     
     class Meta:
         db_table = 'crosswalk'
