@@ -78,7 +78,7 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
             latitude, longitude, cnt, traffic = (
                 float(json_data['latitude']),
                 float(json_data['longitude']),
-                int(json_data['cnt']),
+                int(json_data['count']),
                 bool(json_data['traffic']),
             )
         except Exception as e:
