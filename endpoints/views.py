@@ -61,7 +61,7 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
     # post요청 무시
     def create(self, request, *args, **kwargs):
         return Response({'detail': 'Method \"POST\" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    
+
     @action(detail=False, methods=['post'], url_path='find/distance')
     def find_by_distance(self, request):
         '''
@@ -94,9 +94,9 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
         crosswalk = find_crosswalk_by_distance(point, cnt, traffic)
         # 수행에 성공했으면 반환, 못했으면 404오류
         if crosswalk:
-            response = {'count': len(crosswalk), 'crosswalk': {}}
+            response = {'count': len(crosswalk), 'results': {}}
             for idx, data in enumerate(crosswalk):
-                response['crosswalk'][idx] = {
+                response['results'][idx + 1] = {
                     'id': data['id'],
                     'geom': str(data['geom']),
                     'traffic': bool(data['traffic']),
@@ -142,9 +142,9 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
         crosswalk = find_crosswalk_by_radius(point, radius, traffic)
         # 수행에 성공했으면 반환, 못했으면 404오류
         if crosswalk:
-            response = {'count': len(crosswalk), 'crosswalk': {}}
+            response = {'count': len(crosswalk), 'results': {}}
             for idx, data in enumerate(crosswalk):
-                response['crosswalk'][idx] = {
+                response['results'][idx + 1] = {
                     'id': data['id'],
                     'geom': str(data['geom']),
                     'traffic': bool(data['traffic']),
