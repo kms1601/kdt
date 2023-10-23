@@ -23,8 +23,8 @@ def find_crosswalk_by_distance(point : Point, cnt : int, traffic : bool):
     
     # 거리에 따라 재배열
     crosswalk = (
-            crosswalk.annotate(distance=Distance("geom", point))
-            .order_by("distance")
+            crosswalk.annotate(distance=Distance('geom', point))
+            .order_by('distance')
         )
     crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'cctv', 'distance_to_cctv', 'distance')[:cnt]
     return crosswalk_with_distance
@@ -46,12 +46,20 @@ def find_crosswalk_by_radius(point : Point, radius : float, traffic : bool):
     
     # 거리 계산
     crosswalk = (
-        crosswalk.annotate(distance=Distance("geom", point))
-        .order_by("distance")
+        crosswalk.annotate(distance=Distance('geom', point))
+        .order_by('distance')
     )
     crosswalk_with_distance = crosswalk.values('id', 'geom', 'traffic', 'cctv', 'distance_to_cctv', 'distance')
     return crosswalk_with_distance
-    
+
+from random import randint
+
+
+def get_warning_level(point : Point, id : int) -> int:
+    '''
+    경고 수준 반환(구현 X)
+    '''
+    return randint(0, 2)
     
 
 class CrosswalkModelViewSet(viewsets.ModelViewSet):
@@ -158,9 +166,62 @@ class CrosswalkModelViewSet(viewsets.ModelViewSet):
                 {'detail': 'No matching crosswalk found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        
     
+    @action(detail=False, methods=['post'], url_path='warning')
+    def get_warning(self, request):
+        '''
+        body로 받은 좌표값에 대해 경고 수준을 반환한다.
+        latitude: 위도(float)
+        longitude: 경도(float)
+        distance: 경고를 주기 시작할 거리(float)
+        '''
+        json_data = request.data
+        try:
+            latitude, longitude, distance = (
+                float(json_data['latitude']),
+                float(json_data['longitude']),
+                float(json_data['distance']),
+            )
+        except Exception as e:
+            return Response(
+                {'detail': f'{str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        # body 받은 좌푯값을 Point객체로 변경
+        point = Point(longitude, latitude, srid=4326)
+        
+        # 가장 가까운 신호등 없는 횡단보도 찾기
+        crosswalk = find_crosswalk_by_distance(point, 1, False)
+        
+        # 횡단보도 탐색에 실패 시
+        if not crosswalk:
+            return Response(
+                {'detail': 'No matching crosswalk found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        distance_to_crosswalk, cctv_id = crosswalk[0]['distance'].m, crosswalk[0]['cctv']
+        
+        response = {}
+        response['crosswalk'] = {
+            'id': crosswalk[0]['id'],
+            'geom': str(crosswalk[0]['geom']),
+            'traffic': bool(crosswalk[0]['traffic']),
+            'cctv': crosswalk[0]['cctv'],
+            'distance_to_cctv': crosswalk[0]['distance_to_cctv'],
+            'distance': crosswalk[0]['distance'].m
+        }
+        
+        # 횡단보도와의 거리가 distance보다 가깝다면
+        if distance_to_crosswalk <= distance:
+            warning = get_warning_level(point, cctv_id)
+            response['warning'] = warning
+        else:    
+            response['warning'] = -1
+
+        return Response(response)
+            
+    
 class TrafficModelViewSet(viewsets.ModelViewSet):
     queryset = TrafficModel.objects.all()
     serializer_class = TrafficModelSerializer

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,11 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_to=8w!k_9acf!$ia=r3wuuo)7m!hm6_wjfc7w)g$53*m$a@eh'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Allowed_hosts
 ALLOWED_HOSTS = ['*']
 
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'sslserver',
     'endpoints',
 ]
 
@@ -147,7 +150,15 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
+# CORS_ALLOWED_ORIGINS = [
+# ]
+
+# https certification
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True

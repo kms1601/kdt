@@ -159,6 +159,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# local data
 static
 api.md
 api.pdf
+
+# ssl key
+django.crt
+django.key
