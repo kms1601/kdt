@@ -84,10 +84,10 @@ WSGI_APPLICATION = 'kdtproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'kdtproject',
-        "USER": 'kms1601',
+        'NAME': 'kdt',
+        "USER": 'postgres',
         'PASSWORD': 'k69359804',
-        'HOST': 'localhost',
+        'HOST': 'kdt.cnutjidwyla5.ap-northeast-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
