@@ -162,3 +162,7 @@ CORS_ALLOW_CREDENTIALS = False
 # https certification
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
+
+# GDAL
+GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'
+GEOS_LIBRARY_PATH = '/usr/lib/libgeos_c.so'
